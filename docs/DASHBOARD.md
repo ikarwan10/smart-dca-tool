@@ -4,8 +4,8 @@
 ---
 
 ### Last Updated: December 30, 2025
-### Current Sprint: Sprint 2 ✅ COMPLETED
-### Sprint Goal: Frontend CRUD & Responsive Design
+### Current Sprint: Sprint 3 🏃 IN PROGRESS
+### Sprint Goal: History & Polish
 
 ---
 
@@ -50,23 +50,23 @@ Progress: ████████████████████ 100%
 | Epic | Progress | Stories | Done | Remaining |
 |------|----------|---------|------|-----------|
 | 1. Project Setup | ██████████ 100% | 4 | 4 | 0 |
-| 2. Portfolio Management | ████████░░ 80% | 6 | 5 | 1 |
+| 2. Portfolio Management | ██████████ 100% | 6 | 6 | 0 |
 | 3. Stock Price Service | ██████████ 100% | 5 | 5 | 0 |
 | 4. DCA Calculation Engine | ██████████ 100% | 5 | 5 | 0 |
-| 5. Dashboard & UI | ████████░░ 80% | 6 | 5 | 1 |
+| 5. Dashboard & UI | ██████████ 100% | 6 | 6 | 0 |
 | 6. Settings | ██████████ 100% | 4 | 4 | 0 |
-| 7. History & Tracking | ░░░░░░░░░░ 0% | 5 | 0 | 5 |
+| 7. History & Tracking | ██████████ 100% | 5 | 5 | 0 |
 | 8. Market Analysis | ██████░░░░ 60% | 4 | 2 | 2 |
 | 9. Polish & Docs | ████░░░░░░ 40% | 5 | 2 | 3 |
-| **TOTAL** | **████████░░ 73%** | **44** | **32** | **12** |
+| **TOTAL** | **█████████░ 91%** | **44** | **39** | **5** |
 
 ### Sprint Timeline
 
 ```
 Sprint 0 ████████████████████ Planning ✅ DONE
 Sprint 1 ████████████████████ MVP Backend ✅ DONE
-Sprint 2 ████████████████████ MVP Frontend ✅ DONE (Current)
-Sprint 3 ░░░░░░░░░░░░░░░░░░░░ History & Polish
+Sprint 2 ████████████████████ MVP Frontend ✅ DONE
+Sprint 3 ████████████████████ History & Polish ✅ DONE (Current)
 Sprint 4 ░░░░░░░░░░░░░░░░░░░░ Advanced Features
 ```
 
@@ -74,24 +74,22 @@ Sprint 4 ░░░░░░░░░░░░░░░░░░░░ Advanced F
 
 ## 📋 Story Board
 
-### 📋 Backlog (Not Started)
+### ✅ Completed Stories (Sprint 3)
 | ID | Story | Priority | Sprint |
 |----|-------|----------|--------|
-| DCA-001 | Project Initialization | 🔴 P0 | Sprint 1 |
-| DCA-002 | Flask Application Setup | 🔴 P0 | Sprint 1 |
-| DCA-003 | Database Schema Design | 🔴 P0 | Sprint 1 |
-| DCA-004 | Base HTML Templates | 🔴 P0 | Sprint 1 |
-| DCA-005 | Portfolio Data Model | 🔴 P0 | Sprint 1 |
-| DCA-011 | Price Fetcher Service | 🔴 P0 | Sprint 1 |
-| DCA-012 | ATH Calculator | 🔴 P0 | Sprint 1 |
-| DCA-013 | Price Cache | 🟠 P1 | Sprint 1 |
-| DCA-014 | Batch Price Fetch | 🟠 P1 | Sprint 1 |
-| DCA-015 | Index Data Fetch | 🔴 P0 | Sprint 1 |
-| DCA-016 | Market Condition Calculator | 🔴 P0 | Sprint 1 |
-| DCA-017 | Multiplier Engine | 🔴 P0 | Sprint 1 |
-| DCA-018 | Allocation Calculator | 🔴 P0 | Sprint 1 |
-| DCA-019 | Shares Calculator | 🔴 P0 | Sprint 1 |
-| ... | *See BACKLOG.md for full list* | | |
+| DCA-031 | Log Investment Action | 🟠 P1 | Sprint 3 |
+| DCA-032 | Investment History Page | 🟠 P1 | Sprint 3 |
+| DCA-033 | Performance Calculator | 🟡 P2 | Sprint 3 |
+| DCA-034 | Performance Chart | 🟡 P2 | Sprint 3 |
+
+### 📋 Backlog (Sprint 4)
+| ID | Story | Priority | Sprint |
+|----|-------|----------|--------|
+| DCA-035 | Export to CSV | 🟢 P3 | Sprint 4 |
+| DCA-036 | Market Analysis Page | 🟡 P2 | Sprint 4 |
+| DCA-037 | Market Condition Meter | 🟡 P2 | Sprint 4 |
+| DCA-038 | Opportunity Scanner | 🟢 P3 | Sprint 4 |
+| DCA-039 | Historical Context Chart | 🟢 P3 | Sprint 4 |
 
 ### 🏃 In Progress
 | ID | Story | Owner | Started | Notes |

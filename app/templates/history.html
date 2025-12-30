@@ -2,12 +2,486 @@
 {% block title %}Investment History - Smart DCA Tool{% endblock %}
 {% block content %}
 <div class="space-y-6">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900">Investment History</h1>
-        <p class="text-gray-600">Track your DCA investments over time</p>
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Investment History</h1>
+            <p class="text-gray-600">Track your DCA investments over time</p>
+        </div>
+        <button onclick="openLogModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Log Investment
+        </button>
     </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="summary-cards">
+        <div class="bg-white rounded-lg shadow p-4">
+            <p class="text-sm text-gray-500">Total Invested</p>
+            <p class="text-2xl font-bold text-gray-900" id="total-invested">$0</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <p class="text-sm text-gray-500">Current Value</p>
+            <p class="text-2xl font-bold text-gray-900" id="current-value">--</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <p class="text-sm text-gray-500">Total Gain/Loss</p>
+            <p class="text-2xl font-bold" id="total-gain">--</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <p class="text-sm text-gray-500">Investments Made</p>
+            <p class="text-2xl font-bold text-gray-900" id="investment-count">0</p>
+        </div>
+    </div>
+
+    <!-- Performance Chart -->
     <div class="bg-white rounded-lg shadow p-6">
-        <p class="text-gray-500 text-center py-8">Investment logging coming in Sprint 3</p>
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Investment Over Time</h2>
+        <div class="h-64" id="chart-container">
+            <canvas id="performance-chart"></canvas>
+        </div>
+        <div id="chart-empty" class="hidden text-center py-8 text-gray-500">
+            <p>No investment data yet. Log your first investment to see the chart.</p>
+        </div>
+    </div>
+
+    <!-- Holdings Performance -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Performance by Holding</h2>
+        <div id="holdings-performance">
+            <div class="text-center py-4 text-gray-500">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Investment Log Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-lg font-semibold text-gray-900">Investment Log</h2>
+            <div class="flex gap-2">
+                <select id="filter-ticker" class="border border-gray-300 rounded-md px-3 py-1 text-sm" onchange="filterInvestments()">
+                    <option value="">All Tickers</option>
+                </select>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ticker</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Shares</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Price</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Total</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Condition</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="investment-table-body" class="bg-white divide-y divide-gray-200">
+                    <tr>
+                        <td colspan="7" class="px-6 py-8 text-center text-gray-500">Loading investments...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
+<!-- Log Investment Modal -->
+<div id="log-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-900">Log Investment</h3>
+            <button onclick="closeLogModal()" class="text-gray-400 hover:text-gray-500">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <form id="log-form" onsubmit="submitInvestment(event)" class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Ticker *</label>
+                <select id="log-ticker" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+                    <option value="">Select a holding...</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                <input type="date" id="log-date" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Shares *</label>
+                    <input type="number" id="log-shares" step="0.0001" min="0.0001" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Price *</label>
+                    <input type="number" id="log-price" step="0.01" min="0.01" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Total Amount</label>
+                <input type="text" id="log-total" class="w-full border border-gray-200 rounded-md px-3 py-2 bg-gray-50" readonly>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea id="log-notes" rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Optional notes..."></textarea>
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="log-update-holding" checked class="rounded border-gray-300">
+                <label for="log-update-holding" class="text-sm text-gray-700">Update holding shares and cost basis</label>
+            </div>
+            <div class="flex justify-end gap-3 pt-4">
+                <button type="button" onclick="closeLogModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700">Log Investment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="fixed bottom-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+    <span id="toast-message"></span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let performanceChart = null;
+let allInvestments = [];
+let holdings = [];
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadHoldings();
+    loadInvestments();
+    loadSummary();
+    
+    // Set default date to today
+    document.getElementById('log-date').valueAsDate = new Date();
+    
+    // Calculate total on input change
+    document.getElementById('log-shares').addEventListener('input', calculateTotal);
+    document.getElementById('log-price').addEventListener('input', calculateTotal);
+});
+
+function loadHoldings() {
+    fetch('/api/portfolio')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                holdings = data.data.holdings || [];
+                const tickerSelect = document.getElementById('log-ticker');
+                const filterSelect = document.getElementById('filter-ticker');
+                
+                holdings.forEach(h => {
+                    tickerSelect.innerHTML += `<option value="${h.ticker}">${h.ticker} - ${h.name || h.ticker}</option>`;
+                    filterSelect.innerHTML += `<option value="${h.ticker}">${h.ticker}</option>`;
+                });
+            }
+        });
+}
+
+function loadInvestments() {
+    const ticker = document.getElementById('filter-ticker').value;
+    const url = ticker ? `/api/investments?ticker=${ticker}` : '/api/investments';
+    
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                allInvestments = data.data.investments;
+                renderInvestmentTable(allInvestments);
+            }
+        })
+        .catch(err => {
+            document.getElementById('investment-table-body').innerHTML = 
+                '<tr><td colspan="7" class="px-6 py-8 text-center text-red-500">Error loading investments</td></tr>';
+        });
+}
+
+function loadSummary() {
+    fetch('/api/investments/summary')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const d = data.data;
+                document.getElementById('total-invested').textContent = `$${d.total_invested.toLocaleString()}`;
+                document.getElementById('investment-count').textContent = d.investment_count;
+                
+                if (d.total_value !== null) {
+                    document.getElementById('current-value').textContent = `$${d.total_value.toLocaleString()}`;
+                    const gainEl = document.getElementById('total-gain');
+                    const gainClass = d.total_gain >= 0 ? 'text-emerald-600' : 'text-red-600';
+                    const gainSign = d.total_gain >= 0 ? '+' : '';
+                    gainEl.className = `text-2xl font-bold ${gainClass}`;
+                    gainEl.textContent = `${gainSign}$${d.total_gain.toLocaleString()} (${gainSign}${d.total_gain_percent}%)`;
+                }
+                
+                renderHoldingsPerformance(d.by_ticker);
+                loadChartData();
+            }
+        });
+}
+
+function loadChartData() {
+    fetch('/api/investments/chart-data')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && data.data.labels.length > 0) {
+                document.getElementById('chart-container').classList.remove('hidden');
+                document.getElementById('chart-empty').classList.add('hidden');
+                renderChart(data.data);
+            } else {
+                document.getElementById('chart-container').classList.add('hidden');
+                document.getElementById('chart-empty').classList.remove('hidden');
+            }
+        });
+}
+
+function renderChart(data) {
+    const ctx = document.getElementById('performance-chart').getContext('2d');
+    
+    if (performanceChart) {
+        performanceChart.destroy();
+    }
+    
+    performanceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Monthly Investment',
+                data: data.invested,
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderColor: 'rgb(16, 185, 129)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.1
+            }, {
+                label: 'Cumulative Invested',
+                data: data.cumulative,
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderColor: 'rgb(59, 130, 246)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: value => '$' + value.toLocaleString()
+                    }
+                }
+            }
+        }
+    });
+}
+
+function renderHoldingsPerformance(byTicker) {
+    const container = document.getElementById('holdings-performance');
+    
+    if (Object.keys(byTicker).length === 0) {
+        container.innerHTML = '<p class="text-center py-4 text-gray-500">No holdings with investments yet.</p>';
+        return;
+    }
+    
+    let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
+    
+    for (const [ticker, data] of Object.entries(byTicker)) {
+        const gainClass = data.gain >= 0 ? 'text-emerald-600' : 'text-red-600';
+        const gainSign = data.gain >= 0 ? '+' : '';
+        
+        html += `
+            <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="font-semibold text-gray-900">${ticker}</span>
+                    <span class="text-sm text-gray-500">${data.total_shares.toFixed(4)} shares</span>
+                </div>
+                <div class="space-y-1 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Invested:</span>
+                        <span>$${data.total_invested.toLocaleString()}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Avg Cost:</span>
+                        <span>$${data.avg_cost}</span>
+                    </div>
+                    ${data.current_price ? `
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Current Price:</span>
+                        <span>$${data.current_price}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Current Value:</span>
+                        <span>$${data.current_value.toLocaleString()}</span>
+                    </div>
+                    <div class="flex justify-between pt-1 border-t">
+                        <span class="text-gray-500">Gain/Loss:</span>
+                        <span class="${gainClass}">${gainSign}$${data.gain.toLocaleString()} (${gainSign}${data.gain_percent}%)</span>
+                    </div>
+                    ` : `
+                    <div class="text-gray-400 italic">Price unavailable</div>
+                    `}
+                </div>
+            </div>
+        `;
+    }
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function renderInvestmentTable(investments) {
+    const tbody = document.getElementById('investment-table-body');
+    
+    if (investments.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                    <p>No investments logged yet.</p>
+                    <button onclick="openLogModal()" class="mt-2 text-emerald-600 hover:text-emerald-700">Log your first investment →</button>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = investments.map(inv => `
+        <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDate(inv.date)}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm font-medium">${inv.ticker}</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">${inv.shares.toFixed(4)}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">$${inv.price.toFixed(2)}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">$${inv.total_amount.toLocaleString()}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                ${inv.market_condition ? `<span class="px-2 py-1 rounded text-xs ${getConditionClass(inv.market_condition)}">${inv.market_condition}</span>` : '-'}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right">
+                <button onclick="deleteInvestment(${inv.id})" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function getConditionClass(condition) {
+    const classes = {
+        'normal': 'bg-gray-100 text-gray-800',
+        'mild_dip': 'bg-yellow-100 text-yellow-800',
+        'correction': 'bg-orange-100 text-orange-800',
+        'bear': 'bg-red-100 text-red-800',
+        'crash': 'bg-red-200 text-red-900'
+    };
+    return classes[condition] || 'bg-gray-100 text-gray-800';
+}
+
+function filterInvestments() {
+    loadInvestments();
+}
+
+function openLogModal() {
+    document.getElementById('log-modal').classList.remove('hidden');
+    document.getElementById('log-modal').classList.add('flex');
+}
+
+function closeLogModal() {
+    document.getElementById('log-modal').classList.add('hidden');
+    document.getElementById('log-modal').classList.remove('flex');
+    document.getElementById('log-form').reset();
+    document.getElementById('log-date').valueAsDate = new Date();
+}
+
+function calculateTotal() {
+    const shares = parseFloat(document.getElementById('log-shares').value) || 0;
+    const price = parseFloat(document.getElementById('log-price').value) || 0;
+    const total = (shares * price).toFixed(2);
+    document.getElementById('log-total').value = `$${total}`;
+}
+
+async function submitInvestment(event) {
+    event.preventDefault();
+    
+    const data = {
+        ticker: document.getElementById('log-ticker').value,
+        date: document.getElementById('log-date').value,
+        shares: parseFloat(document.getElementById('log-shares').value),
+        price: parseFloat(document.getElementById('log-price').value),
+        notes: document.getElementById('log-notes').value,
+        update_holding: document.getElementById('log-update-holding').checked
+    };
+    
+    try {
+        const response = await fetch('/api/investments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Investment logged successfully!');
+            closeLogModal();
+            loadInvestments();
+            loadSummary();
+        } else {
+            showToast(result.error || 'Error logging investment', 'error');
+        }
+    } catch (error) {
+        showToast('Error logging investment', 'error');
+    }
+}
+
+async function deleteInvestment(id) {
+    if (!confirm('Are you sure you want to delete this investment log?')) return;
+    
+    try {
+        const response = await fetch(`/api/investments/${id}`, { method: 'DELETE' });
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Investment deleted');
+            loadInvestments();
+            loadSummary();
+        } else {
+            showToast(result.error || 'Error deleting', 'error');
+        }
+    } catch (error) {
+        showToast('Error deleting investment', 'error');
+    }
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toast-message');
+    
+    toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 z-50 ${
+        type === 'error' ? 'bg-red-600' : 'bg-gray-900'
+    } text-white`;
+    
+    toastMessage.textContent = message;
+    toast.classList.remove('translate-y-20', 'opacity-0');
+    
+    setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+    }, 3000);
+}
+</script>
 {% endblock %}

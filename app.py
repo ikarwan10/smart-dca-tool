@@ -22,13 +22,14 @@ from app.models.models import db
 db.init_app(app)
 
 # Import routes after app is created to avoid circular imports
-from app.routes import main_routes, api_routes, portfolio_routes, settings_routes
+from app.routes import main_routes, api_routes, portfolio_routes, settings_routes, investment_routes
 
 # Register blueprints
 app.register_blueprint(main_routes.bp)
 app.register_blueprint(api_routes.bp, url_prefix='/api')
 app.register_blueprint(portfolio_routes.bp, url_prefix='/api')
 app.register_blueprint(settings_routes.bp, url_prefix='/api')
+app.register_blueprint(investment_routes.bp, url_prefix='/api')
 
 
 @app.route('/health')
@@ -43,4 +44,9 @@ with app.app_context():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Use threaded=True and debug=True with use_reloader=False for testing
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == '--no-reload':
+        app.run(debug=False, port=5000, threaded=True)
+    else:
+        app.run(debug=True, port=5000)

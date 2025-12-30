@@ -41,15 +41,34 @@ def get_stock_price(ticker: str, use_cache: bool = True) -> Optional[float]:
     
     try:
         stock = yf.Ticker(ticker)
-        # Try fast_info first, fall back to info
+        price = None
+        
+        # Try fast_info first (fastest method)
         try:
-            price = stock.fast_info.get('lastPrice') or stock.fast_info.get('regularMarketPrice')
+            fast = stock.fast_info
+            price = getattr(fast, 'last_price', None) or getattr(fast, 'regularMarketPrice', None)
         except:
-            info = stock.info
-            price = info.get('regularMarketPrice') or info.get('currentPrice')
+            pass
+        
+        # Try getting from recent history if fast_info failed
+        if price is None:
+            try:
+                hist = stock.history(period="5d")
+                if not hist.empty:
+                    price = float(hist['Close'].iloc[-1])
+            except:
+                pass
+        
+        # Fall back to info
+        if price is None:
+            try:
+                info = stock.info
+                price = info.get('regularMarketPrice') or info.get('currentPrice') or info.get('navPrice')
+            except:
+                pass
         
         if price:
-            _price_cache[ticker] = (price, datetime.now())
+            _price_cache[ticker] = (float(price), datetime.now())
             return float(price)
         return None
         
@@ -188,8 +207,30 @@ def validate_ticker(ticker: str) -> bool:
     """
     try:
         stock = yf.Ticker(ticker)
-        # Try to get any info - if it fails, ticker is invalid
+        # Try fast_info first (faster and more reliable)
+        try:
+            fast = stock.fast_info
+            if hasattr(fast, 'last_price') and fast.last_price is not None:
+                return True
+            if hasattr(fast, 'regularMarketPrice') and fast.regularMarketPrice is not None:
+                return True
+        except:
+            pass
+        
+        # Fall back to getting history (most reliable check)
+        hist = stock.history(period="5d")
+        if not hist.empty:
+            return True
+            
+        # Last resort - check info
         info = stock.info
-        return info.get('regularMarketPrice') is not None or info.get('currentPrice') is not None
-    except:
+        if info.get('regularMarketPrice') is not None or info.get('currentPrice') is not None:
+            return True
+        # Some ETFs/funds use 'navPrice'
+        if info.get('navPrice') is not None:
+            return True
+            
+        return False
+    except Exception as e:
+        logger.error(f"Error validating ticker {ticker}: {e}")
         return False

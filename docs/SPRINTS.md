@@ -14,10 +14,10 @@
 
 | Sprint | Duration | Focus | Hours | Status |
 |--------|----------|-------|-------|--------|
-| Sprint 0 | Dec 30-31, 2025 | Planning & Setup | 10h | 🏃 Current |
-| Sprint 1 | Jan 1-14, 2026 | MVP Backend | 42h | 📋 Planned |
-| Sprint 2 | Jan 15-28, 2026 | MVP Frontend | 50h | 📋 Planned |
-| Sprint 3 | Jan 29 - Feb 11, 2026 | History & Polish | 41h | 📋 Planned |
+| Sprint 0 | Dec 30-31, 2025 | Planning & Setup | 10h | ✅ Complete |
+| Sprint 1 | Jan 1-14, 2026 | MVP Backend | 42h | ✅ Complete |
+| Sprint 2 | Jan 15-28, 2026 | MVP Frontend | 50h | ✅ Complete |
+| Sprint 3 | Jan 29 - Feb 11, 2026 | History & Polish | 41h | 🏃 Current |
 | Sprint 4 | Feb 12-25, 2026 | Advanced Features | 29h | 📋 Planned |
 
 ---

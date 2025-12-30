@@ -71,9 +71,11 @@ def add_holding():
     if not ticker:
         return jsonify({'success': False, 'error': 'Ticker is required'}), 400
     
-    # Validate ticker exists
-    if not price_service.validate_ticker(ticker):
-        return jsonify({'success': False, 'error': f'Invalid ticker: {ticker}'}), 400
+    # Basic ticker format validation (skip Yahoo API check to avoid rate limits)
+    if not ticker.replace('.', '').replace('-', '').replace('^', '').isalnum():
+        return jsonify({'success': False, 'error': f'Invalid ticker format: {ticker}'}), 400
+    if len(ticker) > 10:
+        return jsonify({'success': False, 'error': f'Ticker too long: {ticker}'}), 400
     
     # Get or create portfolio
     portfolio = Portfolio.query.first()
@@ -87,9 +89,14 @@ def add_holding():
     if existing:
         return jsonify({'success': False, 'error': f'{ticker} already in portfolio'}), 400
     
-    # Get stock info for name
-    stock_info = price_service.get_stock_info(ticker)
-    name = data.get('name') or (stock_info.get('name') if stock_info else ticker)
+    # Try to get stock info for name (non-blocking - use provided name or ticker as fallback)
+    name = data.get('name')
+    if not name:
+        try:
+            stock_info = price_service.get_stock_info(ticker)
+            name = stock_info.get('name') if stock_info else ticker
+        except:
+            name = ticker
     
     # Create holding
     holding = Holding(
