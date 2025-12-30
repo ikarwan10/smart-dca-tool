@@ -10,18 +10,14 @@ Flask-WTF==1.2.1
 SQLAlchemy==2.0.23
 
 # Stock Market Data
-yfinance==0.2.33
-pandas==2.1.4
+yfinance>=0.2.33
+pandas>=2.0.0
 
 # Environment & Configuration
 python-dotenv==1.0.0
 
 # Production Server
 gunicorn==21.2.0
-
-# Development & Testing
-pytest==7.4.3
-pytest-cov==4.1.0
 
 # Utilities
 requests==2.31.0
