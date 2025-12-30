@@ -405,4 +405,132 @@ flask run --debug            # Start with debug mode
 
 ---
 
+## 11. Wix Platform Migration Plan
+
+### 11.1 Migration Overview
+**Goal:** Ensure the Smart DCA Tool can be migrated to Wix for public hosting and distribution.
+
+| Aspect | Current (Flask) | Target (Wix) |
+|--------|-----------------|--------------|
+| **Backend** | Python/Flask | Wix Velo (JavaScript) or External API |
+| **Frontend** | Jinja2 + Tailwind | Wix Editor + Velo |
+| **Database** | SQLite | Wix Data Collections |
+| **Hosting** | Local/VPS | Wix Cloud |
+
+### 11.2 Architecture Guidelines for Migration
+
+To ensure smooth migration, follow these principles during development:
+
+#### A. Keep Business Logic Separate
+```
+✅ DO: Create pure calculation functions
+   - dca_engine.py: Only math, no Flask dependencies
+   - market_service.py: API calls isolated
+   
+❌ DON'T: Mix Flask routes with calculations
+```
+
+#### B. Document All Algorithms
+Every calculation must be documented clearly so it can be rewritten in JavaScript:
+- DCA multiplier logic
+- ATH calculation method
+- Allocation formulas
+- Market condition thresholds
+
+#### C. Use Standard Data Formats
+```
+✅ DO: Use JSON for all data exchange
+   - Input: { "portfolio": [...], "base_amount": 500 }
+   - Output: { "recommendations": [...] }
+   
+❌ DON'T: Use Python-specific serialization
+```
+
+#### D. API-First Design
+Design the Flask backend as if it were an API:
+```python
+# Routes should return JSON
+@app.route('/api/calculate-dca', methods=['POST'])
+def calculate_dca():
+    return jsonify(result)  # ← This can become Wix HTTP Function
+```
+
+### 11.3 Wix Migration Options
+
+#### Option 1: Full Rebuild in Wix Velo (Recommended for Simplicity)
+- Rebuild frontend using Wix Editor
+- Rewrite calculation logic in JavaScript
+- Use Wix Data Collections for storage
+- **Effort:** ~40 hours
+- **Pros:** Fully native, no external dependencies
+- **Cons:** Must rewrite Python logic in JS
+
+#### Option 2: Hybrid - Wix Frontend + External API
+- Build frontend in Wix
+- Keep Python backend as hosted API (Heroku, Railway, etc.)
+- Wix calls external API for calculations
+- **Effort:** ~20 hours
+- **Pros:** Reuse Python code, faster migration
+- **Cons:** External hosting costs, latency
+
+#### Option 3: Wix + Serverless Functions
+- Frontend in Wix
+- Calculation logic as serverless (AWS Lambda, Google Cloud Functions)
+- Rewrite core logic in Node.js
+- **Effort:** ~30 hours
+- **Pros:** Scalable, pay-per-use
+- **Cons:** More complex architecture
+
+### 11.4 Migration Checklist
+
+Before migrating, ensure:
+
+- [ ] All business logic is documented in `/docs/ALGORITHMS.md`
+- [ ] API endpoints are RESTful and return JSON
+- [ ] No Flask-specific code in calculation modules
+- [ ] Test coverage includes input/output validation
+- [ ] All config values are externalized (not hardcoded)
+- [ ] yfinance calls are wrapped in service layer
+- [ ] Data models are simple and JSON-serializable
+
+### 11.5 Wix-Specific Considerations
+
+#### Wix Velo Capabilities
+| Feature | Wix Support | Notes |
+|---------|-------------|-------|
+| HTTP Fetch | ✅ Yes | Can call external APIs |
+| Scheduled Jobs | ✅ Yes | For price updates |
+| Data Collections | ✅ Yes | Replace SQLite |
+| User Auth | ✅ Yes | Wix Members |
+| Custom UI | ✅ Yes | Via Editor + Code |
+| Chart.js | ✅ Yes | Via HTML embed |
+
+#### Wix Limitations to Consider
+- No Python runtime (must use JavaScript)
+- API calls have timeout limits
+- Data collections have size limits
+- Custom code in Editor has learning curve
+
+### 11.6 Migration Timeline (Post v1.0)
+
+| Phase | Duration | Activities |
+|-------|----------|------------|
+| **Phase 1** | 1 week | Create ALGORITHMS.md documentation |
+| **Phase 2** | 1 week | Refactor Flask to pure API |
+| **Phase 3** | 2 weeks | Build Wix frontend |
+| **Phase 4** | 1 week | Rewrite JS calculation logic |
+| **Phase 5** | 1 week | Testing & deployment |
+
+### 11.7 Files to Keep Migration-Ready
+
+| File | Migration Action |
+|------|------------------|
+| `app/services/dca_engine.py` | Rewrite in JS |
+| `app/services/price_service.py` | Replace with Wix HTTP fetch |
+| `app/services/market_service.py` | Rewrite in JS |
+| `config.py` | Move to Wix Secrets Manager |
+| `app/models/*.py` | Convert to Wix Data Collections |
+
+---
+
 *This document is the single source of truth for project management. Update as processes evolve.*
