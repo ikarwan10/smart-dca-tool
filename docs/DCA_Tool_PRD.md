@@ -21,6 +21,76 @@ Build an intelligent, automated DCA calculator that takes the emotion out of inv
 
 ---
 
+## 1.1 What is This Tool?
+
+The **Smart DCA Investment Tool** is a personal investment assistant designed to help you invest consistently and intelligently. Instead of trying to time the market or making emotional decisions, this tool tells you:
+
+1. **How much to invest this month** - Based on your budget and current market conditions
+2. **Which stocks to buy** - Allocates your investment across your portfolio to maintain target weights
+3. **When to invest more** - Automatically increases your investment during market dips (when stocks are "on sale")
+4. **How your investments are performing** - Tracks your history and shows gains/losses over time
+
+**The core philosophy:** The best time to invest was yesterday. The second best time is today. But invest *more* when prices are down.
+
+---
+
+## 1.2 What is Dollar Cost Averaging (DCA)?
+
+**Dollar Cost Averaging (DCA)** is an investment strategy where you invest a fixed amount of money at regular intervals, regardless of market conditions. Instead of trying to buy at the "perfect" time, you buy consistently - every week, every month, or every paycheck.
+
+### Why DCA Works
+
+| Scenario | Lump Sum Investing | DCA Approach |
+|----------|-------------------|---------------|
+| Market goes up | ✅ Great returns | ✅ Good returns |
+| Market goes down | ❌ Big losses | ✅ Buy more shares cheap |
+| Market is volatile | 😰 Stressful | 😌 Automatic, no decisions |
+| You don't know what will happen | 🎲 Gambling | ✅ Proven strategy |
+
+### Simple Example
+
+Let's say you invest $500/month in a stock:
+
+| Month | Stock Price | Shares Bought | Total Shares | Total Invested |
+|-------|-------------|---------------|--------------|----------------|
+| Jan   | $100        | 5.00          | 5.00         | $500           |
+| Feb   | $80 (dip!)  | 6.25          | 11.25        | $1,000         |
+| Mar   | $90         | 5.56          | 16.81        | $1,500         |
+| Apr   | $110        | 4.55          | 21.36        | $2,000         |
+
+**Result:** You own 21.36 shares worth $2,350 (at $110/share). That's a **$350 profit (17.5%)** even though the stock only went from $100 to $110 (10%)!
+
+**The magic:** By buying MORE shares when prices were LOW ($80), your average cost per share is only $93.63 - not $100.
+
+### Tom Lee's Enhanced DCA Strategy
+
+Tom Lee, a well-known Wall Street strategist, advocates for a **dynamic DCA approach**:
+
+> "Don't just invest the same amount every month. Invest MORE when the market is down!"
+
+His strategy measures how far the S&P 500 has fallen from its All-Time High (ATH) and increases your investment accordingly:
+
+| Market State | S&P 500 Drawdown | What to Do |
+|--------------|------------------|------------|
+| 🟢 **Normal** | 0-5% from ATH | Invest your normal amount |
+| 🟡 **Mild Dip** | 5-10% from ATH | Invest 25-50% more |
+| 🟠 **Correction** | 10-20% from ATH | Invest 50-100% more |
+| 🔴 **Bear Market** | 20%+ from ATH | Invest 2-3x your normal amount |
+
+**Why?** Historically, buying during corrections leads to the best long-term returns. The market ALWAYS recovers (given enough time), and buying low means you own more shares for the eventual recovery.
+
+### The Emotional Challenge
+
+The hardest part of investing isn't picking stocks - it's controlling your emotions:
+
+- When markets crash, **fear** tells you to sell
+- When markets soar, **greed** tells you to buy more
+- Both instincts are usually WRONG
+
+**This tool solves that problem** by giving you a clear, mathematical answer: *"Based on current conditions, invest $X in Stock Y."* No emotion. No guessing. Just discipline.
+
+---
+
 ## 2. Problem Statement
 
 ### Current Challenges

@@ -33,6 +33,49 @@ The tool implements a drawdown-based investment multiplier strategy:
 
 *All thresholds and multipliers are fully customizable in Settings.*
 
+## 📚 What is Dollar Cost Averaging (DCA)?
+
+**Dollar Cost Averaging** is an investment strategy where you invest a fixed amount of money at regular intervals (weekly, monthly, etc.), regardless of whether the market is up or down.
+
+### Why DCA?
+
+**The problem with timing the market:**
+- Nobody can consistently predict market tops and bottoms
+- Waiting for the "perfect" entry point often means missing gains
+- Emotional decisions (fear during crashes, greed during rallies) hurt returns
+
+**The DCA solution:**
+- Invest consistently, automatically, without emotion
+- When prices are high → you buy fewer shares
+- When prices are low → you buy MORE shares  
+- Over time, your average cost is lower than the average price
+
+### Tom Lee's Enhancement
+
+Traditional DCA invests the same amount every period. Tom Lee's strategy goes further:
+
+> **"Invest MORE when markets are down!"**
+
+When the S&P 500 drops significantly from its All-Time High (ATH), the tool tells you to increase your investment. Why? Because market corrections are historically the BEST times to buy - you're getting stocks "on sale."
+
+### Real-World Example
+
+Imagine you invest $500/month in an S&P 500 index fund:
+
+| Month | Market Status | Multiplier | You Invest | S&P Price | Shares Bought |
+|-------|---------------|------------|------------|-----------|---------------|
+| Jan   | Normal        | 1.0x       | $500       | $500      | 1.00          |
+| Feb   | -8% Dip       | 1.5x       | $750       | $460      | 1.63          |
+| Mar   | -15% Correction | 2.0x     | $1,000     | $425      | 2.35          |
+| Apr   | Recovery      | 1.0x       | $500       | $490      | 1.02          |
+
+**Total invested:** $2,750  
+**Total shares:** 6.00  
+**Average cost per share:** $458.33  
+**Value at $490:** $2,940 = **+$190 profit (6.9%)**
+
+If you had invested $500 flat each month, you'd have only 5.32 shares worth $2,607. The enhanced DCA gave you **12% more shares** by buying aggressively during the dip!
+
 ## 🚀 Quick Start
 
 ### Prerequisites
