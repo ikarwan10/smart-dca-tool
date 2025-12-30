@@ -98,11 +98,6 @@
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     {% block extra_js %}{% endblock %}
     
-    <!-- Mobile Menu Toggle -->
-    <script>
-        document.querySelector('.mobile-menu-button').addEventListener('click', function() {
-            document.querySelector('.mobile-menu').classList.toggle('hidden');
-        });
-    </script>
+    <!-- Mobile menu toggle is handled by app.js -->
 </body>
 </html>

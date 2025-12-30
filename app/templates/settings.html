@@ -2,53 +2,396 @@
 {% block title %}Settings - Smart DCA Tool{% endblock %}
 {% block content %}
 <div class="space-y-6">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
-        <p class="text-gray-600">Configure your DCA strategy</p>
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
+            <p class="text-gray-600">Configure your DCA strategy</p>
+        </div>
+        <div id="save-status" class="text-sm text-green-600 hidden">✓ Saved</div>
     </div>
     
-    <div class="bg-white rounded-lg shadow p-6">
+    <!-- Investment Settings -->
+    <div class="bg-white rounded-lg shadow p-4 sm:p-6">
         <h2 class="text-lg font-semibold mb-4">Investment Settings</h2>
-        <div class="space-y-4 max-w-md">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Base Monthly Investment</label>
                 <div class="flex items-center">
                     <span class="text-gray-500 mr-2">$</span>
-                    <input type="number" value="500" class="w-full px-4 py-2 border rounded-lg">
+                    <input type="number" id="base-investment" min="0" step="50" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                 </div>
+                <p class="mt-1 text-sm text-gray-500">Amount to invest when market is at normal levels</p>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Market Index</label>
-                <select class="w-full px-4 py-2 border rounded-lg">
-                    <option value="^GSPC">S&P 500</option>
-                    <option value="^DJI">Dow Jones</option>
-                    <option value="^IXIC">NASDAQ</option>
+                <select id="index-ticker" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="^GSPC">S&P 500 (^GSPC)</option>
+                    <option value="^DJI">Dow Jones (^DJI)</option>
+                    <option value="^IXIC">NASDAQ (^IXIC)</option>
+                    <option value="^RUT">Russell 2000 (^RUT)</option>
                 </select>
+                <p class="mt-1 text-sm text-gray-500">Index used to determine market conditions</p>
             </div>
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-semibold mb-4">DCA Multipliers (Tom Lee Strategy)</h2>
-        <div class="overflow-x-auto">
+    <!-- DCA Multipliers -->
+    <div class="bg-white rounded-lg shadow p-4 sm:p-6">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
+            <h2 class="text-lg font-semibold">DCA Multipliers (Tom Lee Strategy)</h2>
+            <button onclick="resetToDefaults()" class="text-sm text-blue-600 hover:text-blue-800">Reset to Defaults</button>
+        </div>
+        
+        <p class="text-gray-600 mb-6">Increase investment when market drops below all-time high</p>
+        
+        <!-- Desktop Table -->
+        <div class="hidden sm:block overflow-x-auto">
             <table class="w-full">
                 <thead>
-                    <tr class="border-b">
-                        <th class="text-left py-2">Condition</th>
-                        <th class="text-left py-2">Drawdown Range</th>
-                        <th class="text-left py-2">Multiplier</th>
+                    <tr class="border-b border-gray-200">
+                        <th class="text-left py-3 font-medium text-gray-700">Condition</th>
+                        <th class="text-left py-3 font-medium text-gray-700">Threshold (% below ATH)</th>
+                        <th class="text-left py-3 font-medium text-gray-700">Multiplier</th>
+                        <th class="text-right py-3 font-medium text-gray-700">Investment Amount</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr class="border-b"><td class="py-2">Normal</td><td>0-5%</td><td class="font-bold">1.0x</td></tr>
-                    <tr class="border-b"><td class="py-2">Mild Dip</td><td>5-10%</td><td class="font-bold">1.5x</td></tr>
-                    <tr class="border-b"><td class="py-2">Correction</td><td>10-20%</td><td class="font-bold">2.0x</td></tr>
-                    <tr class="border-b"><td class="py-2">Bear</td><td>20-30%</td><td class="font-bold">2.5x</td></tr>
-                    <tr><td class="py-2">Crash</td><td>30%+</td><td class="font-bold">3.0x</td></tr>
+                    <tr class="border-b border-gray-100">
+                        <td class="py-3"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Normal</span></td>
+                        <td class="py-3">0% - <input type="number" id="threshold-mild" min="1" max="20" step="1" class="w-16 px-2 py-1 border rounded text-center">%</td>
+                        <td class="py-3"><input type="number" id="mult-normal" min="0.5" max="5" step="0.1" class="w-16 px-2 py-1 border rounded text-center">x</td>
+                        <td class="py-3 text-right font-semibold" id="amt-normal">$500</td>
+                    </tr>
+                    <tr class="border-b border-gray-100">
+                        <td class="py-3"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Mild Dip</span></td>
+                        <td class="py-3"><span id="threshold-mild-display">5</span>% - <input type="number" id="threshold-correction" min="5" max="25" step="1" class="w-16 px-2 py-1 border rounded text-center">%</td>
+                        <td class="py-3"><input type="number" id="mult-mild" min="0.5" max="5" step="0.1" class="w-16 px-2 py-1 border rounded text-center">x</td>
+                        <td class="py-3 text-right font-semibold" id="amt-mild">$750</td>
+                    </tr>
+                    <tr class="border-b border-gray-100">
+                        <td class="py-3"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Correction</span></td>
+                        <td class="py-3"><span id="threshold-correction-display">10</span>% - <input type="number" id="threshold-bear" min="10" max="35" step="1" class="w-16 px-2 py-1 border rounded text-center">%</td>
+                        <td class="py-3"><input type="number" id="mult-correction" min="0.5" max="5" step="0.1" class="w-16 px-2 py-1 border rounded text-center">x</td>
+                        <td class="py-3 text-right font-semibold" id="amt-correction">$1,000</td>
+                    </tr>
+                    <tr class="border-b border-gray-100">
+                        <td class="py-3"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Bear</span></td>
+                        <td class="py-3"><span id="threshold-bear-display">20</span>% - <input type="number" id="threshold-crash" min="20" max="50" step="1" class="w-16 px-2 py-1 border rounded text-center">%</td>
+                        <td class="py-3"><input type="number" id="mult-bear" min="0.5" max="5" step="0.1" class="w-16 px-2 py-1 border rounded text-center">x</td>
+                        <td class="py-3 text-right font-semibold" id="amt-bear">$1,250</td>
+                    </tr>
+                    <tr>
+                        <td class="py-3"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-200 text-red-900">Crash</span></td>
+                        <td class="py-3"><span id="threshold-crash-display">30</span>%+</td>
+                        <td class="py-3"><input type="number" id="mult-crash" min="0.5" max="5" step="0.1" class="w-16 px-2 py-1 border rounded text-center">x</td>
+                        <td class="py-3 text-right font-semibold" id="amt-crash">$1,500</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
-        <p class="mt-4 text-sm text-gray-500">Full settings configuration coming in Sprint 2</p>
+        
+        <!-- Mobile Cards -->
+        <div class="sm:hidden space-y-4" id="mobile-multipliers">
+            <!-- Normal -->
+            <div class="border rounded-lg p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Normal</span>
+                    <span class="font-semibold" id="amt-normal-m">$500</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <label class="text-gray-500">Upper Threshold</label>
+                        <input type="number" id="threshold-mild-m" min="1" max="20" step="1" class="w-full mt-1 px-2 py-1 border rounded text-center">
+                    </div>
+                    <div>
+                        <label class="text-gray-500">Multiplier</label>
+                        <input type="number" id="mult-normal-m" min="0.5" max="5" step="0.1" class="w-full mt-1 px-2 py-1 border rounded text-center">
+                    </div>
+                </div>
+            </div>
+            <!-- Mild Dip -->
+            <div class="border rounded-lg p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Mild Dip</span>
+                    <span class="font-semibold" id="amt-mild-m">$750</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <label class="text-gray-500">Upper Threshold</label>
+                        <input type="number" id="threshold-correction-m" min="5" max="25" step="1" class="w-full mt-1 px-2 py-1 border rounded text-center">
+                    </div>
+                    <div>
+                        <label class="text-gray-500">Multiplier</label>
+                        <input type="number" id="mult-mild-m" min="0.5" max="5" step="0.1" class="w-full mt-1 px-2 py-1 border rounded text-center">
+                    </div>
+                </div>
+            </div>
+            <!-- Correction -->
+            <div class="border rounded-lg p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Correction</span>
+                    <span class="font-semibold" id="amt-correction-m">$1,000</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <label class="text-gray-500">Upper Threshold</label>
+                        <input type="number" id="threshold-bear-m" min="10" max="35" step="1" class="w-full mt-1 px-2 py-1 border rounded text-center">
+                    </div>
+                    <div>
+                        <label class="text-gray-500">Multiplier</label>
+                        <input type="number" id="mult-correction-m" min="0.5" max="5" step="0.1" class="w-full mt-1 px-2 py-1 border rounded text-center">
+                    </div>
+                </div>
+            </div>
+            <!-- Bear -->
+            <div class="border rounded-lg p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Bear</span>
+                    <span class="font-semibold" id="amt-bear-m">$1,250</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <label class="text-gray-500">Upper Threshold</label>
+                        <input type="number" id="threshold-crash-m" min="20" max="50" step="1" class="w-full mt-1 px-2 py-1 border rounded text-center">
+                    </div>
+                    <div>
+                        <label class="text-gray-500">Multiplier</label>
+                        <input type="number" id="mult-bear-m" min="0.5" max="5" step="0.1" class="w-full mt-1 px-2 py-1 border rounded text-center">
+                    </div>
+                </div>
+            </div>
+            <!-- Crash -->
+            <div class="border rounded-lg p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-200 text-red-900">Crash</span>
+                    <span class="font-semibold" id="amt-crash-m">$1,500</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <label class="text-gray-500">Threshold</label>
+                        <div class="mt-1 px-2 py-1 bg-gray-100 rounded text-center"><span id="threshold-crash-display-m">30</span>%+</div>
+                    </div>
+                    <div>
+                        <label class="text-gray-500">Multiplier</label>
+                        <input type="number" id="mult-crash-m" min="0.5" max="5" step="0.1" class="w-full mt-1 px-2 py-1 border rounded text-center">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="flex flex-col sm:flex-row justify-end gap-3">
+        <button onclick="loadSettings()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 order-2 sm:order-1">
+            Cancel
+        </button>
+        <button id="save-btn" onclick="saveSettings()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 order-1 sm:order-2">
+            Save Settings
+        </button>
+    </div>
+
+    <!-- Strategy Info -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 class="font-semibold text-blue-900 mb-2">📈 About Tom Lee's DCA Strategy</h3>
+        <p class="text-blue-800 text-sm">
+            This strategy increases your investment amount when the market drops below its all-time high.
+            The logic is simple: buy more when prices are lower (on sale). During normal times, invest your 
+            base amount. During corrections and crashes, invest 2-3x more to take advantage of lower prices.
+        </p>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentSettings = {};
+
+document.addEventListener('DOMContentLoaded', loadSettings);
+
+// Add change listeners for live calculations
+document.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('change', () => {
+        syncInputs(el);
+        updateCalculations();
+    });
+});
+
+// Sync mobile and desktop inputs
+function syncInputs(changedEl) {
+    const id = changedEl.id;
+    const val = changedEl.value;
+    
+    // Map desktop to mobile and vice versa
+    const mapping = {
+        'threshold-mild': 'threshold-mild-m',
+        'threshold-mild-m': 'threshold-mild',
+        'threshold-correction': 'threshold-correction-m',
+        'threshold-correction-m': 'threshold-correction',
+        'threshold-bear': 'threshold-bear-m',
+        'threshold-bear-m': 'threshold-bear',
+        'threshold-crash': 'threshold-crash-m',
+        'threshold-crash-m': 'threshold-crash',
+        'mult-normal': 'mult-normal-m',
+        'mult-normal-m': 'mult-normal',
+        'mult-mild': 'mult-mild-m',
+        'mult-mild-m': 'mult-mild',
+        'mult-correction': 'mult-correction-m',
+        'mult-correction-m': 'mult-correction',
+        'mult-bear': 'mult-bear-m',
+        'mult-bear-m': 'mult-bear',
+        'mult-crash': 'mult-crash-m',
+        'mult-crash-m': 'mult-crash',
+    };
+    
+    if (mapping[id]) {
+        const paired = document.getElementById(mapping[id]);
+        if (paired) paired.value = val;
+    }
+}
+
+async function loadSettings() {
+    try {
+        const response = await fetch('/api/settings');
+        const result = await response.json();
+        if (result.success) {
+            currentSettings = result.data;
+            populateForm(result.data);
+            updateCalculations();
+        }
+    } catch (error) { 
+        console.error('Error:', error);
+        DCAApp.showToast('Failed to load settings', 'error');
+    }
+}
+
+function populateForm(data) {
+    // Desktop fields
+    document.getElementById('base-investment').value = data.base_investment;
+    document.getElementById('index-ticker').value = data.index_ticker;
+    document.getElementById('threshold-mild').value = data.thresholds.mild_dip;
+    document.getElementById('threshold-correction').value = data.thresholds.correction;
+    document.getElementById('threshold-bear').value = data.thresholds.bear;
+    document.getElementById('threshold-crash').value = data.thresholds.crash;
+    document.getElementById('mult-normal').value = data.multipliers.normal;
+    document.getElementById('mult-mild').value = data.multipliers.mild_dip;
+    document.getElementById('mult-correction').value = data.multipliers.correction;
+    document.getElementById('mult-bear').value = data.multipliers.bear;
+    document.getElementById('mult-crash').value = data.multipliers.crash;
+    
+    // Mobile fields
+    const mobileFields = document.querySelectorAll('#mobile-multipliers input');
+    if (mobileFields.length) {
+        document.getElementById('threshold-mild-m').value = data.thresholds.mild_dip;
+        document.getElementById('threshold-correction-m').value = data.thresholds.correction;
+        document.getElementById('threshold-bear-m').value = data.thresholds.bear;
+        document.getElementById('threshold-crash-m').value = data.thresholds.crash;
+        document.getElementById('mult-normal-m').value = data.multipliers.normal;
+        document.getElementById('mult-mild-m').value = data.multipliers.mild_dip;
+        document.getElementById('mult-correction-m').value = data.multipliers.correction;
+        document.getElementById('mult-bear-m').value = data.multipliers.bear;
+        document.getElementById('mult-crash-m').value = data.multipliers.crash;
+    }
+}
+
+function updateCalculations() {
+    const base = parseFloat(document.getElementById('base-investment').value) || 500;
+    
+    // Update threshold displays
+    const thresholdMild = document.getElementById('threshold-mild').value;
+    const thresholdCorrection = document.getElementById('threshold-correction').value;
+    const thresholdBear = document.getElementById('threshold-bear').value;
+    const thresholdCrash = document.getElementById('threshold-crash').value;
+    
+    document.getElementById('threshold-mild-display').textContent = thresholdMild;
+    document.getElementById('threshold-correction-display').textContent = thresholdCorrection;
+    document.getElementById('threshold-bear-display').textContent = thresholdBear;
+    document.getElementById('threshold-crash-display').textContent = thresholdCrash;
+    
+    if (document.getElementById('threshold-crash-display-m')) {
+        document.getElementById('threshold-crash-display-m').textContent = thresholdCrash;
+    }
+    
+    // Update amount displays
+    const fmt = (n) => '$' + n.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+    const amounts = {
+        'normal': base * parseFloat(document.getElementById('mult-normal').value),
+        'mild': base * parseFloat(document.getElementById('mult-mild').value),
+        'correction': base * parseFloat(document.getElementById('mult-correction').value),
+        'bear': base * parseFloat(document.getElementById('mult-bear').value),
+        'crash': base * parseFloat(document.getElementById('mult-crash').value)
+    };
+    
+    // Desktop amounts
+    document.getElementById('amt-normal').textContent = fmt(amounts.normal);
+    document.getElementById('amt-mild').textContent = fmt(amounts.mild);
+    document.getElementById('amt-correction').textContent = fmt(amounts.correction);
+    document.getElementById('amt-bear').textContent = fmt(amounts.bear);
+    document.getElementById('amt-crash').textContent = fmt(amounts.crash);
+    
+    // Mobile amounts
+    if (document.getElementById('amt-normal-m')) {
+        document.getElementById('amt-normal-m').textContent = fmt(amounts.normal);
+        document.getElementById('amt-mild-m').textContent = fmt(amounts.mild);
+        document.getElementById('amt-correction-m').textContent = fmt(amounts.correction);
+        document.getElementById('amt-bear-m').textContent = fmt(amounts.bear);
+        document.getElementById('amt-crash-m').textContent = fmt(amounts.crash);
+    }
+}
+
+async function saveSettings() {
+    const saveBtn = document.getElementById('save-btn');
+    saveBtn.classList.add('btn-loading');
+    saveBtn.disabled = true;
+    
+    const data = {
+        base_investment: parseFloat(document.getElementById('base-investment').value),
+        index_ticker: document.getElementById('index-ticker').value,
+        threshold_mild_dip: parseFloat(document.getElementById('threshold-mild').value),
+        threshold_correction: parseFloat(document.getElementById('threshold-correction').value),
+        threshold_bear: parseFloat(document.getElementById('threshold-bear').value),
+        threshold_crash: parseFloat(document.getElementById('threshold-crash').value),
+        multiplier_normal: parseFloat(document.getElementById('mult-normal').value),
+        multiplier_mild_dip: parseFloat(document.getElementById('mult-mild').value),
+        multiplier_correction: parseFloat(document.getElementById('mult-correction').value),
+        multiplier_bear: parseFloat(document.getElementById('mult-bear').value),
+        multiplier_crash: parseFloat(document.getElementById('mult-crash').value)
+    };
+    
+    try {
+        const response = await fetch('/api/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (result.success) {
+            DCAApp.showToast('Settings saved successfully', 'success');
+        } else {
+            DCAApp.showToast(result.error || 'Failed to save settings', 'error');
+        }
+    } catch (error) { 
+        console.error('Error:', error);
+        DCAApp.showToast('An error occurred. Please try again.', 'error');
+    } finally {
+        saveBtn.classList.remove('btn-loading');
+        saveBtn.disabled = false;
+    }
+}
+
+async function resetToDefaults() {
+    if (!confirm('Reset all settings to defaults?')) return;
+    try {
+        const response = await fetch('/api/settings/reset', { method: 'POST' });
+        const result = await response.json();
+        if (result.success) {
+            loadSettings();
+            DCAApp.showToast('Settings reset to defaults', 'success');
+        }
+    } catch (error) { 
+        console.error('Error:', error);
+        DCAApp.showToast('Failed to reset settings', 'error');
+    }
+}
+</script>
 {% endblock %}
