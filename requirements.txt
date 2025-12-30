@@ -1,0 +1,24 @@
+# Smart DCA Investment Tool - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Web Framework
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-WTF==1.2.1
+
+# Database
+SQLAlchemy==2.0.23
+
+# Stock Market Data
+yfinance==0.2.33
+pandas==2.1.4
+
+# Environment & Configuration
+python-dotenv==1.0.0
+
+# Development & Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+
+# Utilities
+requests==2.31.0

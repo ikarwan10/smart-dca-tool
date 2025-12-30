@@ -1,0 +1,106 @@
+/* 
+ * Smart DCA Investment Tool - Main Stylesheet
+ * ============================================
+ * Custom styles that extend Tailwind CSS
+ */
+
+/* Custom color variables aligned with UX Design */
+:root {
+    --color-primary: #2563EB;
+    --color-primary-dark: #1D4ED8;
+    --color-success: #10B981;
+    --color-warning: #F59E0B;
+    --color-danger: #EF4444;
+    --color-dark: #1F2937;
+    --color-light: #F9FAFB;
+}
+
+/* Base body styles */
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--color-light);
+    color: var(--color-dark);
+}
+
+/* Market condition colors */
+.market-normal { color: #10B981; }
+.market-dip { color: #3B82F6; }
+.market-correction { color: #F59E0B; }
+.market-bear { color: #EF4444; }
+.market-crash { color: #DC2626; }
+
+/* Card styles */
+.card {
+    background: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+}
+
+/* Loading spinner */
+.spinner {
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid var(--color-primary);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Stock ticker badge */
+.ticker-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background: #E5E7EB;
+    border-radius: 0.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+/* Progress bar */
+.progress-bar {
+    height: 8px;
+    background: #E5E7EB;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--color-primary);
+    transition: width 0.3s ease;
+}
+
+/* Table styles */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    text-align: left;
+    padding: 0.75rem;
+    background: #F3F4F6;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #6B7280;
+}
+
+.data-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+    .card {
+        padding: 1rem;
+    }
+}

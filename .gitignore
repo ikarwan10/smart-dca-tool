@@ -1,0 +1,80 @@
+# Smart DCA Investment Tool - Git Ignore File
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Flask
+instance/
+.webassets-cache
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment Variables
+.env
+.env.local
+.env.production
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+
+# Logs
+*.log
+logs/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Compiled Files
+*.pyc
+*.pyo
+
+# Distribution
+dist/
+build/
+
+# Jupyter Notebooks (if any)
+.ipynb_checkpoints/
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
