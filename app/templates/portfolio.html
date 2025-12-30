@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Portfolio - Smart DCA Tool{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Portfolio</h1>
+            <p class="text-gray-600">Manage your stock holdings</p>
+        </div>
+        <button onclick="showAddModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            + Add Holding
+        </button>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <p class="text-gray-500 text-center py-8">Portfolio management coming in Sprint 2</p>
+    </div>
+</div>
+{% endblock %}

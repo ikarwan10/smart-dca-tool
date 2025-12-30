@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+
+{% block title %}DCA Planner - Smart DCA Tool{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">DCA Planner</h1>
+        <p class="text-gray-600">Calculate your investment allocation based on market conditions</p>
+    </div>
+
+    <!-- Investment Configuration -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Investment Configuration</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Base Investment Amount</label>
+                <div class="flex items-center">
+                    <span class="text-gray-500 mr-2">$</span>
+                    <input type="number" id="base-amount" value="500" 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Market Index</label>
+                <select id="market-index" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="^GSPC">S&P 500</option>
+                    <option value="^DJI">Dow Jones</option>
+                    <option value="^IXIC">NASDAQ</option>
+                </select>
+            </div>
+        </div>
+        
+        <button onclick="calculateDCA()" 
+                class="mt-6 w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition font-semibold">
+            Calculate DCA Recommendation
+        </button>
+    </div>
+
+    <!-- Market Status -->
+    <div id="market-status" class="bg-white rounded-lg shadow p-6 hidden">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Market Status</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <div class="text-sm text-gray-500">Condition</div>
+                <div id="result-condition" class="text-xl font-bold"></div>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <div class="text-sm text-gray-500">Drawdown</div>
+                <div id="result-drawdown" class="text-xl font-bold text-gray-900"></div>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <div class="text-sm text-gray-500">Multiplier</div>
+                <div id="result-multiplier" class="text-xl font-bold text-blue-600"></div>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <div class="text-sm text-gray-500">Total to Invest</div>
+                <div id="result-total" class="text-xl font-bold text-green-600"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo Holdings for Testing -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Portfolio Holdings</h2>
+        <p class="text-gray-600 mb-4">Add holdings in the <a href="/portfolio" class="text-blue-600 hover:underline">Portfolio</a> page. Demo holdings shown below:</p>
+        
+        <div id="holdings-list" class="space-y-3">
+            <!-- Demo holdings for testing -->
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center">
+                    <span class="font-mono font-bold text-lg mr-3">VOO</span>
+                    <span class="text-gray-600">Vanguard S&P 500 ETF</span>
+                </div>
+                <span class="text-gray-900 font-semibold">50%</span>
+            </div>
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center">
+                    <span class="font-mono font-bold text-lg mr-3">QQQ</span>
+                    <span class="text-gray-600">Invesco NASDAQ 100 ETF</span>
+                </div>
+                <span class="text-gray-900 font-semibold">30%</span>
+            </div>
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center">
+                    <span class="font-mono font-bold text-lg mr-3">SCHD</span>
+                    <span class="text-gray-600">Schwab US Dividend Equity ETF</span>
+                </div>
+                <span class="text-gray-900 font-semibold">20%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Allocation Results -->
+    <div id="allocation-results" class="bg-white rounded-lg shadow p-6 hidden">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Allocation Breakdown</h2>
+        <div id="allocation-cards" class="space-y-4">
+            <!-- Filled by JavaScript -->
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+            <h3 class="font-semibold text-blue-900 mb-3">📋 Order Summary</h3>
+            <div id="order-summary" class="font-mono text-sm">
+                <!-- Filled by JavaScript -->
+            </div>
+            <button onclick="copyOrderSummary()" 
+                    class="mt-3 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+                Copy to Clipboard
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Demo holdings (will come from database later)
+const demoHoldings = [
+    { ticker: 'VOO', name: 'Vanguard S&P 500 ETF', target_allocation: 50 },
+    { ticker: 'QQQ', name: 'Invesco NASDAQ 100 ETF', target_allocation: 30 },
+    { ticker: 'SCHD', name: 'Schwab US Dividend Equity ETF', target_allocation: 20 }
+];
+
+async function calculateDCA() {
+    const baseAmount = parseFloat(document.getElementById('base-amount').value);
+    const indexTicker = document.getElementById('market-index').value;
+    
+    try {
+        const response = await fetch('/api/dca/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                holdings: demoHoldings,
+                base_amount: baseAmount,
+                index_ticker: indexTicker
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayResults(result.data);
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error calculating DCA:', error);
+        alert('Error calculating DCA. Check console for details.');
+    }
+}
+
+function displayResults(data) {
+    // Show market status
+    const marketStatus = document.getElementById('market-status');
+    marketStatus.classList.remove('hidden');
+    
+    document.getElementById('result-condition').textContent = data.market.condition_display;
+    document.getElementById('result-condition').style.color = getConditionColor(data.market.condition);
+    document.getElementById('result-drawdown').textContent = `-${data.market.drawdown_percent}%`;
+    document.getElementById('result-multiplier').textContent = `${data.market.multiplier}x`;
+    document.getElementById('result-total').textContent = `$${data.market.total_amount.toFixed(2)}`;
+    
+    // Show allocation results
+    const allocationResults = document.getElementById('allocation-results');
+    allocationResults.classList.remove('hidden');
+    
+    const cardsContainer = document.getElementById('allocation-cards');
+    cardsContainer.innerHTML = '';
+    
+    let orderLines = [];
+    
+    data.allocations.forEach(alloc => {
+        const card = document.createElement('div');
+        card.className = 'flex items-center justify-between p-4 border rounded-lg';
+        card.innerHTML = `
+            <div>
+                <span class="font-mono font-bold text-lg">${alloc.ticker}</span>
+                <span class="text-gray-500 ml-2">@ $${alloc.current_price.toFixed(2)}</span>
+            </div>
+            <div class="text-right">
+                <div class="text-lg font-bold text-green-600">$${alloc.recommended_amount.toFixed(2)}</div>
+                <div class="text-sm text-gray-500">${alloc.shares_whole} shares (${alloc.shares_fractional} fractional)</div>
+            </div>
+        `;
+        cardsContainer.appendChild(card);
+        
+        orderLines.push(`${alloc.ticker}: $${alloc.recommended_amount.toFixed(2)} (${alloc.shares_whole} shares)`);
+    });
+    
+    // Order summary
+    document.getElementById('order-summary').innerHTML = orderLines.join('<br>') + 
+        `<br><br><strong>Total: $${data.market.total_amount.toFixed(2)}</strong>`;
+}
+
+function getConditionColor(condition) {
+    const colors = {
+        'normal': '#10B981',
+        'mild_dip': '#3B82F6',
+        'correction': '#F59E0B',
+        'bear': '#EF4444',
+        'crash': '#DC2626'
+    };
+    return colors[condition] || '#6B7280';
+}
+
+function copyOrderSummary() {
+    const summary = document.getElementById('order-summary').innerText;
+    navigator.clipboard.writeText(summary);
+    alert('Order summary copied to clipboard!');
+}
+</script>
+{% endblock %}

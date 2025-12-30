@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Market Analysis - Smart DCA Tool{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">Market Analysis</h1>
+        <p class="text-gray-600">Monitor market conditions and opportunities</p>
+    </div>
+    
+    <div id="market-overview" class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold mb-4">Current Market Conditions</h2>
+        <div id="market-loading" class="text-center py-8">Loading market data...</div>
+        <div id="market-data" class="hidden grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <div class="text-sm text-gray-500">S&P 500</div>
+                <div id="sp500-price" class="text-xl font-bold"></div>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <div class="text-sm text-gray-500">ATH</div>
+                <div id="sp500-ath" class="text-xl font-bold"></div>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <div class="text-sm text-gray-500">Drawdown</div>
+                <div id="sp500-drawdown" class="text-xl font-bold"></div>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <div class="text-sm text-gray-500">Condition</div>
+                <div id="sp500-condition" class="text-xl font-bold"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const response = await fetch('/api/market/status');
+        const result = await response.json();
+        if (result.success) {
+            document.getElementById('market-loading').classList.add('hidden');
+            document.getElementById('market-data').classList.remove('hidden');
+            document.getElementById('sp500-price').textContent = '$' + result.data.current_price.toFixed(2);
+            document.getElementById('sp500-ath').textContent = '$' + result.data.ath.toFixed(2);
+            document.getElementById('sp500-drawdown').textContent = '-' + result.data.drawdown_percent.toFixed(1) + '%';
+            document.getElementById('sp500-condition').textContent = result.data.condition_display;
+        }
+    } catch (e) { console.error(e); }
+});
+</script>
+{% endblock %}
