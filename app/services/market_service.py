@@ -98,3 +98,50 @@ def scan_opportunities(tickers: list, threshold: float = 10.0) -> list:
     
     # Sort by drawdown (biggest opportunity first)
     return sorted(opportunities, key=lambda x: x['drawdown_percent'], reverse=True)
+
+
+def get_stock_analysis(ticker: str) -> Optional[Dict]:
+    """
+    Get detailed analysis for a single stock.
+    
+    Args:
+        ticker: Stock ticker symbol
+        
+    Returns:
+        Dictionary with stock analysis data including 52-week high
+    """
+    import yfinance as yf
+    import time
+    import random
+    
+    try:
+        # Add rate limiting delay
+        time.sleep(random.uniform(0.1, 0.3))
+        
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period="1y")
+        
+        if hist.empty:
+            return None
+        
+        current_price = float(hist['Close'].iloc[-1])
+        high_52w = float(hist['High'].max())
+        
+        # Calculate 24h change if we have enough data
+        change_percent = 0
+        if len(hist) >= 2:
+            prev_close = float(hist['Close'].iloc[-2])
+            change_percent = ((current_price - prev_close) / prev_close) * 100
+        
+        return {
+            'ticker': ticker,
+            'current_price': current_price,
+            'high_52w': high_52w,
+            'low_52w': float(hist['Low'].min()),
+            'change_percent': round(change_percent, 2),
+            'drawdown_from_high': round(((high_52w - current_price) / high_52w) * 100, 2)
+        }
+        
+    except Exception as e:
+        print(f"Error analyzing {ticker}: {e}")
+        return None

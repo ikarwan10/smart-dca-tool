@@ -4,8 +4,8 @@
 ---
 
 ### Last Updated: December 30, 2025
-### Current Sprint: Sprint 3 🏃 IN PROGRESS
-### Sprint Goal: History & Polish
+### Current Sprint: Sprint 4 🏃 IN PROGRESS
+### Sprint Goal: Advanced Features & Release Prep
 
 ---
 

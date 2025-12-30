@@ -1,51 +1,449 @@
 {% extends "base.html" %}
 {% block title %}Market Analysis - Smart DCA Tool{% endblock %}
+
 {% block content %}
 <div class="space-y-6">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900">Market Analysis</h1>
-        <p class="text-gray-600">Monitor market conditions and opportunities</p>
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Market Analysis</h1>
+            <p class="text-gray-600">Monitor market conditions and find buying opportunities</p>
+        </div>
+        <button onclick="refreshData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Refresh
+        </button>
     </div>
-    
-    <div id="market-overview" class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-semibold mb-4">Current Market Conditions</h2>
-        <div id="market-loading" class="text-center py-8">Loading market data...</div>
-        <div id="market-data" class="hidden grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="text-center p-4 bg-gray-50 rounded-lg">
-                <div class="text-sm text-gray-500">S&P 500</div>
-                <div id="sp500-price" class="text-xl font-bold"></div>
+
+    <!-- Market Condition Meter -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Market Condition Meter</h2>
+        <div class="flex flex-col lg:flex-row items-center gap-8">
+            <!-- Gauge -->
+            <div class="relative w-64 h-40">
+                <svg viewBox="0 0 200 120" class="w-full h-full">
+                    <!-- Gauge Background Arc -->
+                    <defs>
+                        <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#10B981"/>
+                            <stop offset="20%" style="stop-color:#3B82F6"/>
+                            <stop offset="40%" style="stop-color:#F59E0B"/>
+                            <stop offset="70%" style="stop-color:#EF4444"/>
+                            <stop offset="100%" style="stop-color:#DC2626"/>
+                        </linearGradient>
+                    </defs>
+                    
+                    <!-- Background track -->
+                    <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#E5E7EB" stroke-width="20"/>
+                    
+                    <!-- Colored arc -->
+                    <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#gaugeGradient)" stroke-width="20" stroke-linecap="round"/>
+                    
+                    <!-- Zone markers -->
+                    <text x="15" y="110" font-size="8" fill="#6B7280">0%</text>
+                    <text x="45" y="45" font-size="8" fill="#6B7280">10%</text>
+                    <text x="95" y="25" font-size="8" fill="#6B7280">25%</text>
+                    <text x="145" y="45" font-size="8" fill="#6B7280">40%</text>
+                    <text x="175" y="110" font-size="8" fill="#6B7280">50%</text>
+                    
+                    <!-- Needle -->
+                    <g id="gauge-needle" transform="rotate(-90, 100, 100)">
+                        <line x1="100" y1="100" x2="100" y2="35" stroke="#1F2937" stroke-width="3" stroke-linecap="round"/>
+                        <circle cx="100" cy="100" r="8" fill="#1F2937"/>
+                    </g>
+                </svg>
             </div>
-            <div class="text-center p-4 bg-gray-50 rounded-lg">
-                <div class="text-sm text-gray-500">ATH</div>
-                <div id="sp500-ath" class="text-xl font-bold"></div>
+            
+            <!-- Current Status -->
+            <div class="flex-1 text-center lg:text-left">
+                <div class="mb-4">
+                    <span class="text-sm text-gray-500">Index</span>
+                    <div id="meter-index" class="text-xl font-bold text-gray-900">S&P 500</div>
+                </div>
+                <div class="mb-4">
+                    <span class="text-sm text-gray-500">Current Drawdown</span>
+                    <div id="meter-drawdown" class="text-3xl font-bold text-gray-900">--%</div>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">Market Condition</span>
+                    <div id="meter-condition" class="text-xl font-bold">
+                        <span class="skeleton inline-block w-24 h-8">&nbsp;</span>
+                    </div>
+                </div>
             </div>
-            <div class="text-center p-4 bg-gray-50 rounded-lg">
-                <div class="text-sm text-gray-500">Drawdown</div>
-                <div id="sp500-drawdown" class="text-xl font-bold"></div>
+            
+            <!-- Investment Recommendation -->
+            <div class="bg-gray-50 rounded-lg p-6 text-center">
+                <div class="text-sm text-gray-500 mb-2">Recommended Multiplier</div>
+                <div id="meter-multiplier" class="text-4xl font-bold text-blue-600 mb-4">1.0x</div>
+                <div class="text-sm text-gray-500 mb-1">Monthly Investment</div>
+                <div id="meter-investment" class="text-2xl font-bold text-emerald-600">$500</div>
             </div>
-            <div class="text-center p-4 bg-gray-50 rounded-lg">
-                <div class="text-sm text-gray-500">Condition</div>
-                <div id="sp500-condition" class="text-xl font-bold"></div>
+        </div>
+        
+        <!-- Zone Legend -->
+        <div class="mt-6 flex flex-wrap justify-center gap-4 text-sm">
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-emerald-500"></div>
+                <span>Normal (0-5%)</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-blue-500"></div>
+                <span>Mild Dip (5-10%)</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-amber-500"></div>
+                <span>Correction (10-20%)</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-red-500"></div>
+                <span>Bear (20-35%)</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-red-700"></div>
+                <span>Crash (35%+)</span>
             </div>
         </div>
     </div>
+
+    <!-- Market Analysis Details -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Market Stats -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Market Statistics</h2>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center py-3 border-b">
+                    <span class="text-gray-600">Current Price</span>
+                    <span id="stat-current" class="font-semibold text-gray-900">--</span>
+                </div>
+                <div class="flex justify-between items-center py-3 border-b">
+                    <span class="text-gray-600">All-Time High</span>
+                    <span id="stat-ath" class="font-semibold text-gray-900">--</span>
+                </div>
+                <div class="flex justify-between items-center py-3 border-b">
+                    <span class="text-gray-600">Distance from ATH</span>
+                    <span id="stat-distance" class="font-semibold text-gray-900">--</span>
+                </div>
+                <div class="flex justify-between items-center py-3">
+                    <span class="text-gray-600">Base Investment</span>
+                    <span id="stat-base" class="font-semibold text-gray-900">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thresholds & Multipliers -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Your DCA Settings</h2>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center py-2 px-3 bg-emerald-50 rounded">
+                    <span class="text-emerald-800">Normal (0% - <span id="th-mild">5</span>%)</span>
+                    <span id="mult-normal" class="font-bold text-emerald-600">1.0x</span>
+                </div>
+                <div class="flex justify-between items-center py-2 px-3 bg-blue-50 rounded">
+                    <span class="text-blue-800">Mild Dip (<span id="th-mild2">5</span>% - <span id="th-corr">10</span>%)</span>
+                    <span id="mult-mild" class="font-bold text-blue-600">1.5x</span>
+                </div>
+                <div class="flex justify-between items-center py-2 px-3 bg-amber-50 rounded">
+                    <span class="text-amber-800">Correction (<span id="th-corr2">10</span>% - <span id="th-bear">20</span>%)</span>
+                    <span id="mult-corr" class="font-bold text-amber-600">2.0x</span>
+                </div>
+                <div class="flex justify-between items-center py-2 px-3 bg-red-50 rounded">
+                    <span class="text-red-800">Bear Market (<span id="th-bear2">20</span>% - <span id="th-crash">35</span>%)</span>
+                    <span id="mult-bear" class="font-bold text-red-600">2.5x</span>
+                </div>
+                <div class="flex justify-between items-center py-2 px-3 bg-red-100 rounded">
+                    <span class="text-red-900">Crash (><span id="th-crash2">35</span>%)</span>
+                    <span id="mult-crash" class="font-bold text-red-700">3.0x</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Opportunity Scanner -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold text-gray-900">Opportunity Scanner</h2>
+            <div id="opportunities-summary" class="text-sm text-gray-500">
+                Scanning portfolio...
+            </div>
+        </div>
+        
+        <div id="opportunities-loading" class="text-center py-8">
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <p class="text-gray-500">Scanning your holdings for opportunities...</p>
+        </div>
+        
+        <div id="opportunities-empty" class="hidden text-center py-8">
+            <div class="text-gray-400 mb-4">
+                <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <p class="text-gray-600">No holdings in portfolio. Add stocks to see opportunities.</p>
+            <a href="/portfolio" class="inline-block mt-4 text-blue-600 hover:underline">Go to Portfolio →</a>
+        </div>
+        
+        <div id="opportunities-table" class="hidden overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Price</th>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">52W High</th>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Discount</th>
+                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Opportunity</th>
+                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">24h Change</th>
+                    </tr>
+                </thead>
+                <tbody id="opportunities-body" class="divide-y divide-gray-200">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Historical Context -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Historical Context</h2>
+        <div class="h-64" id="historical-chart-container">
+            <canvas id="historical-chart"></canvas>
+        </div>
+        <p class="text-sm text-gray-500 mt-4 text-center">
+            S&P 500 with market condition zones over the past year
+        </p>
+    </div>
 </div>
-{% endblock %}
-{% block extra_js %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        const response = await fetch('/api/market/status');
-        const result = await response.json();
-        if (result.success) {
-            document.getElementById('market-loading').classList.add('hidden');
-            document.getElementById('market-data').classList.remove('hidden');
-            document.getElementById('sp500-price').textContent = '$' + result.data.current_price.toFixed(2);
-            document.getElementById('sp500-ath').textContent = '$' + result.data.ath.toFixed(2);
-            document.getElementById('sp500-drawdown').textContent = '-' + result.data.drawdown_percent.toFixed(1) + '%';
-            document.getElementById('sp500-condition').textContent = result.data.condition_display;
-        }
-    } catch (e) { console.error(e); }
+let historicalChart = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadMarketAnalysis();
+    loadOpportunities();
 });
+
+async function refreshData() {
+    await Promise.all([
+        loadMarketAnalysis(),
+        loadOpportunities()
+    ]);
+    showToast('Data refreshed successfully');
+}
+
+async function loadMarketAnalysis() {
+    try {
+        const response = await fetch('/api/market/analysis');
+        const result = await response.json();
+        
+        if (result.success) {
+            const data = result.data;
+            
+            // Update meter
+            updateGauge(data.drawdown_percent);
+            document.getElementById('meter-index').textContent = data.index_ticker;
+            document.getElementById('meter-drawdown').textContent = `-${data.drawdown_percent.toFixed(1)}%`;
+            document.getElementById('meter-condition').innerHTML = 
+                `<span style="color: ${getConditionColor(data.condition)}">${data.condition_display}</span>`;
+            document.getElementById('meter-multiplier').textContent = `${data.current_multiplier}x`;
+            document.getElementById('meter-investment').textContent = `$${data.adjusted_investment.toFixed(0)}`;
+            
+            // Update stats
+            document.getElementById('stat-current').textContent = `$${data.current_price.toFixed(2)}`;
+            document.getElementById('stat-ath').textContent = `$${data.ath_price.toFixed(2)}`;
+            document.getElementById('stat-distance').textContent = `$${(data.ath_price - data.current_price).toFixed(2)}`;
+            document.getElementById('stat-base').textContent = `$${data.base_investment}`;
+            
+            // Update thresholds
+            document.getElementById('th-mild').textContent = data.thresholds.mild_dip;
+            document.getElementById('th-mild2').textContent = data.thresholds.mild_dip;
+            document.getElementById('th-corr').textContent = data.thresholds.correction;
+            document.getElementById('th-corr2').textContent = data.thresholds.correction;
+            document.getElementById('th-bear').textContent = data.thresholds.bear;
+            document.getElementById('th-bear2').textContent = data.thresholds.bear;
+            document.getElementById('th-crash').textContent = data.thresholds.crash;
+            document.getElementById('th-crash2').textContent = data.thresholds.crash;
+            
+            // Update multipliers
+            document.getElementById('mult-normal').textContent = `${data.multipliers.normal}x`;
+            document.getElementById('mult-mild').textContent = `${data.multipliers.mild_dip}x`;
+            document.getElementById('mult-corr').textContent = `${data.multipliers.correction}x`;
+            document.getElementById('mult-bear').textContent = `${data.multipliers.bear}x`;
+            document.getElementById('mult-crash').textContent = `${data.multipliers.crash}x`;
+            
+            // Load historical chart
+            loadHistoricalChart(data.index_ticker);
+        }
+    } catch (error) {
+        console.error('Error loading market analysis:', error);
+    }
+}
+
+function updateGauge(drawdown) {
+    // Calculate rotation angle for needle (-90 to +90 degrees)
+    // 0% = -90deg, 50% = +90deg
+    const angle = -90 + (Math.min(drawdown, 50) / 50) * 180;
+    const needle = document.getElementById('gauge-needle');
+    needle.setAttribute('transform', `rotate(${angle}, 100, 100)`);
+}
+
+async function loadOpportunities() {
+    try {
+        const response = await fetch('/api/market/opportunities');
+        const result = await response.json();
+        
+        document.getElementById('opportunities-loading').classList.add('hidden');
+        
+        if (!result.success) {
+            document.getElementById('opportunities-empty').classList.remove('hidden');
+            document.getElementById('opportunities-summary').textContent = 'No portfolio configured';
+            return;
+        }
+        
+        const data = result.data;
+        
+        if (data.opportunities.length === 0) {
+            document.getElementById('opportunities-empty').classList.remove('hidden');
+            return;
+        }
+        
+        // Update summary
+        document.getElementById('opportunities-summary').textContent = 
+            `${data.summary.buying_opportunities} opportunities found | Avg discount: ${data.summary.average_drawdown}%`;
+        
+        // Build table
+        const tbody = document.getElementById('opportunities-body');
+        tbody.innerHTML = '';
+        
+        data.opportunities.forEach(opp => {
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50';
+            
+            const opportunityBadge = getOpportunityBadge(opp.opportunity_level);
+            const changeClass = opp.change_24h >= 0 ? 'text-emerald-600' : 'text-red-600';
+            const changeSign = opp.change_24h >= 0 ? '+' : '';
+            
+            row.innerHTML = `
+                <td class="px-4 py-3">
+                    <div class="font-medium text-gray-900">${opp.ticker}</div>
+                    <div class="text-sm text-gray-500">${opp.name || ''}</div>
+                </td>
+                <td class="px-4 py-3 text-right font-medium">$${opp.current_price.toFixed(2)}</td>
+                <td class="px-4 py-3 text-right text-gray-500">$${opp.high_52w.toFixed(2)}</td>
+                <td class="px-4 py-3 text-right font-semibold text-red-600">-${opp.drawdown_percent.toFixed(1)}%</td>
+                <td class="px-4 py-3 text-center">${opportunityBadge}</td>
+                <td class="px-4 py-3 text-right ${changeClass}">${changeSign}${opp.change_24h.toFixed(2)}%</td>
+            `;
+            
+            tbody.appendChild(row);
+        });
+        
+        document.getElementById('opportunities-table').classList.remove('hidden');
+        
+    } catch (error) {
+        console.error('Error loading opportunities:', error);
+        document.getElementById('opportunities-loading').classList.add('hidden');
+        document.getElementById('opportunities-empty').classList.remove('hidden');
+    }
+}
+
+function getOpportunityBadge(level) {
+    const badges = {
+        'exceptional': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-purple-100 text-purple-800">★ EXCEPTIONAL</span>',
+        'strong': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-red-100 text-red-800">STRONG BUY</span>',
+        'moderate': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800">MODERATE</span>',
+        'mild': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800">MILD</span>',
+        'none': '<span class="px-2 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-600">HOLD</span>'
+    };
+    return badges[level] || badges['none'];
+}
+
+function getConditionColor(condition) {
+    const colors = {
+        'normal': '#10B981',
+        'mild_dip': '#3B82F6',
+        'correction': '#F59E0B',
+        'bear': '#EF4444',
+        'crash': '#DC2626'
+    };
+    return colors[condition] || '#6B7280';
+}
+
+async function loadHistoricalChart(ticker) {
+    try {
+        // Create a simple chart showing drawdown zones
+        const ctx = document.getElementById('historical-chart').getContext('2d');
+        
+        if (historicalChart) {
+            historicalChart.destroy();
+        }
+        
+        // Generate sample historical data (in production, this would come from API)
+        const labels = [];
+        const data = [];
+        const today = new Date();
+        
+        for (let i = 364; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(date.getDate() - i);
+            if (i % 7 === 0) {  // Weekly data points
+                labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                // Simulated drawdown data - in production, get real data
+                data.push(Math.random() * 15);  // Random 0-15% drawdown
+            }
+        }
+        
+        historicalChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Drawdown from ATH',
+                    data: data,
+                    borderColor: '#3B82F6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        reverse: true,
+                        beginAtZero: true,
+                        max: 40,
+                        ticks: {
+                            callback: value => `-${value}%`
+                        }
+                    }
+                }
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error loading historical chart:', error);
+    }
+}
+
+function showToast(message) {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'fixed bottom-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('opacity-0');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
 </script>
 {% endblock %}

@@ -22,7 +22,7 @@ from app.models.models import db
 db.init_app(app)
 
 # Import routes after app is created to avoid circular imports
-from app.routes import main_routes, api_routes, portfolio_routes, settings_routes, investment_routes
+from app.routes import main_routes, api_routes, portfolio_routes, settings_routes, investment_routes, export_routes, market_routes
 
 # Register blueprints
 app.register_blueprint(main_routes.bp)
@@ -30,6 +30,8 @@ app.register_blueprint(api_routes.bp, url_prefix='/api')
 app.register_blueprint(portfolio_routes.bp, url_prefix='/api')
 app.register_blueprint(settings_routes.bp, url_prefix='/api')
 app.register_blueprint(investment_routes.bp, url_prefix='/api')
+app.register_blueprint(export_routes.bp, url_prefix='/api')
+app.register_blueprint(market_routes.bp)
 
 
 @app.route('/health')
