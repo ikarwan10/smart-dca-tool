@@ -10,6 +10,9 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+# Get the base directory for the app
+basedir = os.path.abspath(os.path.dirname(__file__))
+
 
 class Config:
     """Base configuration class."""
@@ -17,8 +20,9 @@ class Config:
     # Flask Settings
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
     
-    # Database Settings
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///dca_tool.db'
+    # Database Settings - use absolute path
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, 'instance', 'dca_tool.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Application Settings
